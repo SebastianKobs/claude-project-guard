@@ -1,0 +1,12 @@
+# output the guard redirected here from outside the project
+tmp/*
+!tmp/.gitkeep
+
+# test scratch directories
+tests/.tmp/
+
+__pycache__/
+
+# personal Claude Code settings of this repo
+.claude/settings.local.json
+.claude/guard.local.yml
