@@ -46,6 +46,8 @@ redirects. [README.md](README.md) describes the behaviour; the module docstring 
 
 ## Layout
 ```
+.claude/settings.json       registers guard.py for this repo itself (so its subagents can't edit guard.py,
+                            guard.yml or .claude/; do that in the main session)
 guard.py                    the hook: config loading, the three policies, combine and reply
 guard.yml                   the defaults, documented (loaded first; the project's .claude/guard.yml and
                             .claude/guard.local.yml override it)

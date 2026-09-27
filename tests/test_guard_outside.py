@@ -162,19 +162,35 @@ class ProjectDirTest(HookCase):
 
 
 SETTINGS = os.path.join(HOST_PROJECT, ".claude", "settings.json")
+OWN_SETTINGS = os.path.join(GUARD_DIR, ".claude", "settings.json")
 
 
-@unittest.skipUnless(os.path.exists(SETTINGS), "the guard is not installed in a project")
-class RegistrationTest(unittest.TestCase):
+class RegistrationCase:
+    """Checks that a settings file registers the one guard, by its command, for every checked tool."""
+
+    settings = ""
+    command = ""
+
     def test_settings_register_the_one_guard_for_every_checked_tool(self):
-        with open(SETTINGS, encoding="utf-8") as settings_file:
+        with open(self.settings, encoding="utf-8") as settings_file:
             entries = json.load(settings_file)["hooks"]["PreToolUse"]
         commands = [hook["command"] for entry in entries for hook in entry["hooks"]]
-        self.assertEqual(commands, ['python3 "$CLAUDE_PROJECT_DIR/.claude/hooks/project-guard/guard.py"'])
+        self.assertEqual(commands, [self.command])
         matcher = entries[0]["matcher"]
         for tool in ("Bash", "Read", "Write", "Edit", "MultiEdit", "NotebookEdit", "Glob", "Grep", "mcp__x"):
             with self.subTest(tool=tool):
                 self.assertRegex(tool, f"^(?:{matcher})$")
+
+
+@unittest.skipUnless(os.path.exists(SETTINGS), "the guard is not installed in a project")
+class RegistrationTest(RegistrationCase, unittest.TestCase):
+    settings = SETTINGS
+    command = 'python3 "$CLAUDE_PROJECT_DIR/.claude/hooks/project-guard/guard.py"'
+
+
+class OwnRegistrationTest(RegistrationCase, unittest.TestCase):
+    settings = OWN_SETTINGS
+    command = 'python3 "$CLAUDE_PROJECT_DIR/guard.py"'
 
 
 class GuardHookWithoutConfigTest(HookCase):

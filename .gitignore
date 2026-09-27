@@ -6,3 +6,7 @@ tmp/*
 tests/.tmp/
 
 __pycache__/
+
+# personal Claude Code settings of this repo
+.claude/settings.local.json
+.claude/guard.local.yml

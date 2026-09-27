@@ -90,7 +90,7 @@ This is a guard against mistakes, not a sandbox. Paths hidden in variables, glob
 Put this folder at `.claude/hooks/project-guard/` in your project, for example as a git submodule:
 
 ```sh
-git submodule add git@github.com:SebastianKobs/claude-project-guard.git .claude/hooks/project-guard
+git submodule add https://github.com/SebastianKobs/claude-project-guard.git .claude/hooks/project-guard
 ```
 
 Register it in `.claude/settings.json`:
@@ -160,6 +160,7 @@ The guard never blocks a call by crashing:
 ## Folder layout
 
 ```
+.claude/      registers the guard for work on this repo itself
 guard.py      the hook
 guard.yml     its defaults, documented
 tests/        unittest suites; each test builds a throwaway project under tests/.tmp/
