@@ -1,0 +1,7 @@
+# Fixture for the guard tests, copied into each throwaway project as config/tests.yml: another config file that
+# the scopes in fixture-guard.yml refer to ({tests.test_dir}).
+
+test_dir: tests/Unit
+support_dir: tests/Support
+command: "vendor/bin/pest --colors=never {paths}"
+fixtures: tests/FIXTURES.md

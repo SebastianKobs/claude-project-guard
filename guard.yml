@@ -1,0 +1,77 @@
+# The guard hook's defaults (guard.py next to this file), documented. Every key also has its default in guard.py
+# (DEFAULTS), so this file is optional. All paths are relative to the project directory unless noted.
+#
+# Don't change this file for one project; override it there, with the same sections and keys:
+#   .claude/guard.yml         the project's settings (committed)
+#   .claude/guard.local.yml   personal settings (gitignored)
+# Later files win; nested mappings are merged key by key, lists are replaced, and a key without a value keeps the
+# default.
+#
+# One more setting has no default here, as it only makes sense per project:
+#   shared:
+#     never_access: [path, ...]   # never read, list, follow or write these (a symlink to a production system,
+#                                 # secrets, customer data); the guard forces a permission prompt for them
+
+hooks:
+  # Paths outside the project that tools may use without a permission prompt. Placeholders: ~ (home), {uid}
+  # (numeric user id), {slug} (project path with every non-alphanumeric character replaced by "-", as Claude Code
+  # names its per-project directories).
+
+  # Claude Code's own session directories: memory, scratchpad, subagent output files.
+  session_paths:
+    - ~/.claude/projects/{slug}
+    - /tmp/claude-{uid}/{slug}
+
+  # Further absolute paths (and everything below them). Add personal ones in .claude/guard.local.yml.
+  extra_allowed_paths: []
+
+  # Exact paths (not prefixes) any tool may use.
+  allowed_exact:
+    - /dev/null
+    - /dev/stdin
+    - /dev/stdout
+    - /dev/stderr
+    - /dev/tty
+
+  # Bash only: program and library locations, so commands like /usr/bin/env python3 run without a prompt.
+  # Data locations (~, /etc, /var, /tmp, other repos, ..) still prompt.
+  bash_system_prefixes: [/usr, /bin, /sbin, /lib, /lib32, /lib64, /libx32, /opt, /snap, /dev]
+
+  # Where subagents not listed in agent_scopes may write with the edit tools (Write, Edit, MultiEdit,
+  # NotebookEdit); anything else is denied. "." is the project directory; [] means nowhere. Their Bash is left to
+  # the boundary check above. Built in and not configurable: no subagent may write the guard's own files (the
+  # Claude Code settings, .claude/hooks/, this file), whatever its scope says.
+  subagent_write: ["."]
+
+  # Stricter scopes for single subagents (by the event's agent_type). Per agent: `write` = paths the edit tools may
+  # write (and everything below them), `commands` = the only Bash commands it may run, exactly; none means no Bash.
+  # In a command, {paths} stands for one or more paths below `write`. {name.key} refers to another config value: a
+  # section of this file, or else config/<name>.yml. The main session is left alone. Example:
+  #   test-writer:
+  #     write: [tests]
+  #     commands: ["python3 -m unittest {paths}"]
+  agent_scopes: {}
+
+  # Output files of these tools that point outside the project (C:/Users/..., /home/other/.., ~/.., ../..) are
+  # rewritten to <target>/<server>.<tool>/<file name> and the call is allowed, with a warning to you and the model.
+  # So an approved prompt can't make, say, a Playwright screenshot land outside. `tools` maps tool name patterns
+  # (fnmatch) to the arguments that name an output file; relative names stay in the tool's own output folder.
+  # Bash: when a command runs a program of `programs.locations` (location pattern -> program file names; a bare name
+  # is looked up in PATH), an outside value of one of `programs.options` (--option=value) goes to
+  # <target>/<program>/<file name>. An entry `name: [options]` gives a program its own options instead of the shared
+  # ones, e.g. `- other.exe: [--out]`. A program on a Windows drive (/mnt/<letter>/) gets it as a
+  # \\wsl.localhost\<distro>\... path, so headless Chrome saves its screenshot in the project instead of
+  # C:\Users\Public; outside WSL its Windows paths just prompt. A listed program in its location doesn't prompt itself;
+  # the other paths of its command still do. Only the program a command runs counts, not a name in a script's text.
+  # `target` must be inside the project; {guard} is the folder of guard.py, whose tmp/ is gitignored there and the one
+  # place below .claude/hooks that subagents may write.
+  redirect_outputs:
+    target: "{guard}/tmp"
+    tools:
+      "mcp__*playwright*__*": [filename]
+    programs:
+      options: [--screenshot, --print-to-pdf]
+      locations:
+        "/mnt/?/": [chrome.exe, msedge.exe]
+        "/Applications/": [Google Chrome, Microsoft Edge, Chromium]
+        "/usr/bin/": [chromium, chromium-browser, google-chrome, google-chrome-stable, microsoft-edge]

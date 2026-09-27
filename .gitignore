@@ -1,0 +1,8 @@
+# output the guard redirected here from outside the project
+tmp/*
+!tmp/.gitkeep
+
+# test scratch directories
+tests/.tmp/
+
+__pycache__/

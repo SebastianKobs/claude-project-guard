@@ -1,0 +1,21 @@
+# Fixture for the guard tests, copied into each throwaway project as .claude/guard.yml. The hooks section sets only
+# agent_scopes, so everything else comes from the DEFAULTS in guard.py.
+
+shared:
+  never_access: [src/prod-link]         # the tests make it a symlink out of the project
+
+# An arbitrary section that scope values refer to ({agents.docs.src_dir}).
+agents:
+  docs:
+    dir: docs-refactor
+    src_dir: docs-refactor/src
+
+hooks:
+  agent_scopes:
+    doc-writer:
+      write: ["{agents.docs.src_dir}"]
+    test-writer:
+      write: ["{tests.test_dir}", "{tests.support_dir}"]
+      commands: ["{tests.command}"]
+    test-surveyor:
+      write: ["{tests.fixtures}"]
